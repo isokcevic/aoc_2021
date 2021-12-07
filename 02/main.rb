@@ -1,3 +1,7 @@
+def run_transformation(coords, transformation_map, name, amount)
+  transformation_map[name].call(coords, amount.to_i)
+end
+
 transformations_1 = {
   "forward" => -> (coords, amount) { coords[:position] += amount },
   "down" => -> (coords, amount) { coords[:depth] += amount },
@@ -9,11 +13,6 @@ transformations_2 = {
   "up" => -> (coords, amount) { coords[:aim] -= amount },
   "forward" => -> (coords, amount) { coords[:position] += amount; coords[:depth] += coords[:aim] * amount }
 }
-
-def run_transformation(coords, transformation_map, name, amount)
-  transformation_map[name].call(coords, amount.to_i)
-end
-
 
 lines = File.open("input", "r"){|f| f.readlines(chomp: true)}
 
