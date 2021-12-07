@@ -1,15 +1,15 @@
 positions = File.open("input", "r").readline(chomp: true).split(',').map(&:to_i)
 
-minimum = nil
+min_1, min_2 = nil
 (positions.min..positions.max).each do |target|
-  total = positions.reduce(0){|tot, pos| tot += (pos-target).abs}
-  minimum = total if minimum.nil? || total < minimum
-end
-pp minimum
+  distances = positions.map{|pos| (pos-target).abs}
 
-minimum = nil
-(positions.min..positions.max).each do |target|
-  total = positions.reduce(0){|tot, pos| tot += (1..(pos-target).abs).sum}
-  minimum = total if minimum.nil? || total < minimum
+  total = distances.sum
+  min_1 = total if min_1.nil? || total < min_1
+
+  total = distances.sum{|d| (1..d).sum }
+  min_2 = total if min_2.nil? || total < min_2
 end
-pp minimum
+
+pp min_1
+pp min_2
