@@ -23,28 +23,18 @@ def fill(hmap, fmap, x, y)
 end
 
 def basin_size(hmap, x, y)
-  fill_map = []
-
-  # Generate all-false fillmap
-  hmap.length.times do
-    fill_map << [false] * hmap[0].length
-  end
+  # Return false for any coordinates not explicitly set to something else (true)
+  fill_map = Hash.new{|hash, key| hash[key] = Hash.new{|h, k| h[k] = false }}
 
   fill(hmap, fill_map, x, y).size
 end
 
-data = File.open("input", "r").readlines(chomp: true).map{|l| l.split("").map(&:to_i)}
-
-# Generate a heightmap larger than input data, and fill it with 9
-heightmap = []
-(data.length+2).times do
-  heightmap << [9] * (data[0].length + 2)
-end
-# Copy the input data inside the generated heightmap, so it is padded with 9's
-# TODO: better implementation of data padding?
-(0...data.length).step do |i|
-  (0...data[0].length).step do |j|
-    heightmap[i+1][j+1] = data[i][j]
+# Return 9 as default value for any not set heightmap coordinates.
+# Allows comparing edge and corner elements with values "outside" the known heightmap, without need to take extra care
+heightmap = Hash.new{|hash, key| hash[key] = Hash.new{|h, k| h[k] = 9}}
+File.open("input", "r").readlines(chomp: true).each.with_index do |line, i|
+  line.split("").each.with_index do |c, j|
+    heightmap[i][j] = c.to_i
   end
 end
 
