@@ -64,4 +64,4 @@ h.times do |i|
 end
 
 pp sum
-pp basin_sizes.sort.last(3).reduce(1){|p, s| p * s}
+pp basin_sizes.sort.last(3).reduce(1, :*)
