@@ -48,13 +48,14 @@ end
   end
 end
 
+h = heightmap.length
+w = heightmap[0].length
+
 sum = 0
 basin_sizes = []
 
-# Iterate over the inner portion of 9-padded heightmap
-# This way we never bother with edge or corner special cases
-(1...(heightmap.length-1)).step do |i|
-  (1...(heightmap[0].length-1)).step do |j|
+h.times do |i|
+  w.times do |j|
     if low_point?(heightmap, j, i)
       sum += heightmap[i][j] + 1
       basin_sizes << basin_size(heightmap, j, i)
