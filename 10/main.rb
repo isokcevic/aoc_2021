@@ -77,9 +77,14 @@ class StackSolver
   }
 
   def solve(lines)
-    results = lines.map { |l| score(l) }.reduce({ :error => [], :autocomplete => [] }) { |acc, res| acc[res[:type]] << res[:score]; acc }
-    pp results[:error].sum
-    pp results[:autocomplete].sort[results[:autocomplete].length / 2]
+    scores = lines.map { |l| score(l) }.reduce({ :error => [], :autocomplete => [] }) do |acc, res|
+      acc[:error] << res[:error] unless res[:error].nil?
+      acc[:autocomplete] << res[:autocomplete] unless res[:autocomplete].nil?
+      acc
+    end
+
+    pp scores[:error].sum
+    pp scores[:autocomplete].sort[scores[:autocomplete].length / 2]
   end
 
   private
@@ -90,21 +95,14 @@ class StackSolver
       if !PAIRS[c].nil?
         match_stack.push PAIRS[c]
       elsif c != match_stack.pop
-        return {
-          :type => :error,
-          :score => SCORES[c][:error]
-        }
+        return { :error => SCORES[c][:error] }
       end
     end
 
-    {
-      :type => :autocomplete,
-      :score => match_stack.reverse.reduce(0){ |total, s| total * 5 + SCORES[s][:autocomplete]}
-    }
+    { :autocomplete => match_stack.reverse.reduce(0){ |total, s| total * 5 + SCORES[s][:autocomplete]} }
   end
 end
 
-solver = nil
 case ARGV[0]
 when /stack|s/
   solver = StackSolver.new
