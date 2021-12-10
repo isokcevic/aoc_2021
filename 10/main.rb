@@ -104,8 +104,18 @@ class StackSolver
   end
 end
 
-lines = File.open("input", "r") { |f| f.readlines(chomp: true) }
+solver = nil
+case ARGV[0]
+when /stack|s/
+  solver = StackSolver.new
+when /recursive|r/
+  solver = RecursiveSolver.new
+else
+  puts "Please specify a solver as a parameter, either 'stack' (or 's'), or 'recursive' (or 'r')"
+  puts "e.g. ruby main.rb stack"
+  exit 13
+end
 
-solver = RecursiveSolver.new
+lines = File.open("input", "r") { |f| f.readlines(chomp: true) }
 
 solver.solve(lines)
