@@ -61,6 +61,49 @@ class RecursiveSolver
   end
 end
 
+class StackSolver
+  PAIRS = {
+    "(" => ")",
+    "[" => "]",
+    "{" => "}",
+    "<" => ">"
+  }
+
+  SCORES = {
+    ")" => {:error => 3, :autocomplete => 1},
+    "]" => {:error => 57, :autocomplete => 2},
+    "}" => {:error => 1197, :autocomplete => 3},
+    ">" => {:error => 25137, :autocomplete => 4}
+  }
+
+  def solve(lines)
+    results = lines.map { |l| score(l) }.reduce({ :error => [], :autocomplete => [] }) { |acc, res| acc[res[:type]] << res[:score]; acc }
+    pp results[:error].sum
+    pp results[:autocomplete].sort[results[:autocomplete].length / 2]
+  end
+
+  private
+
+  def score(line)
+    match_stack = []
+    line.each_char do |c|
+      if !PAIRS[c].nil?
+        match_stack.push PAIRS[c]
+      elsif c != match_stack.pop
+        return {
+          :type => :error,
+          :score => SCORES[c][:error]
+        }
+      end
+    end
+
+    {
+      :type => :autocomplete,
+      :score => match_stack.reverse.reduce(0){ |total, s| total * 5 + SCORES[s][:autocomplete]}
+    }
+  end
+end
+
 lines = File.open("input", "r") { |f| f.readlines(chomp: true) }
 
 solver = RecursiveSolver.new
