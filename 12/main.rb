@@ -20,7 +20,7 @@ class CaveSystem < Hash
 
     visited = visited_prev + [cave]
 
-    self[cave][:connections].filter { |c| yield c, visited }.sum { |c| paths_count(c, visited, &cave_allowed) }
+    self[cave][:connections].filter { |c| cave_allowed.call(c, visited) }.sum { |c| paths_count(c, visited, &cave_allowed) }
   end
 end
 
