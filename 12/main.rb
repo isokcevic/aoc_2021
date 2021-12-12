@@ -1,26 +1,30 @@
-def count_paths(caves, cave, visited_prev = [], &fitness)
-  return 1 if cave == 'end'
+class CaveSystem < Hash
+  def initialize(tunnels)
+    super() { |h, k| h[k] = { :connections => [] } }
 
-  visited = visited_prev + [cave]
+    tunnels.each do |tnl|
+      cave, connection = tnl.split("-")
+      self[cave][:connections] << connection
+      self[connection][:connections] << cave
+    end
+  end
 
-  caves[cave][:connections].filter{|c| yield c, visited}.sum{|c| count_paths(caves, c, visited, &fitness)}
-end
+  def paths_count(cave = "start", visited_prev = [], &cave_allowed)
+    return 1 if cave == 'end'
 
-sections = Hash.new { |h, k| h[k] = { :connections => [] } }
+    visited = visited_prev + [cave]
 
-File.open("input", "r") do |f|
-  f.readlines(chomp: true).each do |l|
-    section, connection = l.split("-")
-    sections[section][:connections] << connection
-    sections[connection][:connections] << section
+    self[cave][:connections].filter { |c| yield c, visited }.sum { |c| paths_count(c, visited, &cave_allowed) }
   end
 end
 
-pp count_paths(sections, "start"){|c, visited| c == c.upcase || !visited.include?(c)}
+cs = CaveSystem.new(File.open("input", "r") { |f| f.readlines(chomp: true) })
+
+pp cs.paths_count { |c, visited| c == c.upcase || !visited.include?(c) }
 
 # Needs an intermediate variable, otherwise do..end block gets passed to pp rather than our function. TIL.
-# Alternative format would be pp (count_paths(sections, "start") do ... end ) - but that is bloody ugly.
-r2 = count_paths(sections, "start") do |c, visited|
+# Alternative format would be pp (cs.paths_count do ... end ) - but that is bloody ugly. Worse than a too long one-liner.
+r2 = cs.paths_count do |c, visited|
   c == c.upcase || c != 'start' && (!visited.include?(c) || visited.tally.all? { |k, v| k == k.upcase || v == 1 })
 end
 pp r2
