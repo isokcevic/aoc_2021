@@ -1,75 +1,83 @@
-def read_dots(paper, dot_line)
-  x, y = dot_line.split(",").map(&:to_i)
-  paper[y] ||= []
-  paper[y][x] = true
-end
+class Paper
+  def initialize
+    @data = []
+    @w = 0
+    @h = 0
+  end
 
-def fold(paper, fold_line)
-  axis, coord = fold_line.split(" ")[2].split("=")
-  coord = coord.to_i
+  def <<(coords)
+    x, y = coords.split(",").map(&:to_i)
+    @w = x + 1 if x + 1 > @w
+    @h = y + 1 if y + 1 > @h
 
-  copy = []
+    @data[y] ||= []
+    @data[y][x] = true
+  end
 
-  if axis == "y"
-    paper.each.with_index do |row, i|
-      if i < coord
-        copy[i] = row || []
+  def fold(spec)
+    axis, value = spec.split(" ")[2].split("=")
+    value = value.to_i
+
+    if axis == "x"
+      fold_x(value)
+    else
+      fold_y(value)
+    end
+  end
+
+  def fold_x(value)
+    (0...@h).each do |i|
+      next if @data[i].nil?
+      (0..value).each do |j|
+        @data[i][j] ||= @data[i][@w - 1 - j]
+      end
+    end
+    @w = value
+  end
+
+  def fold_y(value)
+    (0..value).each do |i|
+      next if @data[@h - 1 - i].nil?
+      @data[i] ||= []
+      (0...@w).each do |j|
+        @data[i][j] ||= @data[@h - 1 - i][j]
+      end
+    end
+    @h = value
+  end
+
+  def to_s
+    (0...@h).map do |i|
+      if @data[i].nil?
+        "." * @w
       else
-        next if row.nil?
-        row.each.with_index do |v, j|
-          copy[paper.length - 1 - i][j] ||= v
-        end
-      end
-    end
-  else
-    paper.each.with_index do |row, i|
-      next if row.nil?
-      row.each.with_index do |v, j|
-        copy[i] ||= []
-        if j < coord
-          copy[i][j] = v
-        elsif j > coord
-          copy[i][2 * coord - j] = (copy[i][2 * coord - j] || v)
-        end
-      end
-    end
+        (0...@w).map{ |j| @data[i][j] ? "#" : "." }.join("")
+      end + "\n"
+    end.join("")
   end
 
-  copy
-end
-
-def debug(paper)
-  paper.each do |row|
-    if row.nil?
-      puts
-      next
-    end
-    row.each do |v|
-      print v ? "#" : "."
-    end
-    puts
+  def dots_count
+    (0...@h).sum{|i| @data[i].nil? ? 0 : (0...@w).count{|j| @data[i][j] } }
   end
 end
 
-def count_dots(paper)
-  paper.sum{|row| row.nil? ? 0 : row.count{|v| v == true }}
-end
+reading_dots = true
+dots_count = nil
 
-paper = []
-
-reading = :dots
-
-File.open("input", "r"){|f| f.readlines(chomp: true)}.each do |line|
-  if line.length  < 2
-    reading = :folds
+paper = Paper.new
+File.open("input", "r") { |f| f.readlines(chomp: true)}.each do |line|
+  if line.length == 0
+    reading_dots = false
     next
   end
 
-  read_dots(paper, line) if reading == :dots
-  if reading == :folds
-    paper = fold(paper, line)
-    pp count_dots(paper)
+  if reading_dots
+    paper << line
+  else
+    paper.fold(line)
+    dots_count = paper.dots_count if dots_count.nil?
   end
 end
 
-debug(paper)
+puts dots_count
+puts paper
